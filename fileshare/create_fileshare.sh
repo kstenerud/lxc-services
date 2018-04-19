@@ -32,14 +32,18 @@ lxc config device add $CONTAINER_NAME shared disk source="$SHARED_DIRECTORY" pat
 
 # Install software (need to sleep so that apk doesn't barf)
 sleep 1
-lxc exec $CONTAINER_NAME -- apk add samba nfs-utils
+lxc exec $CONTAINER_NAME -- apk add samba nfs-utils avahi dbus
 pushd "$SCRIPT_HOME/fs"
 tar cf - . | lxc exec $CONTAINER_NAME -- tar xf - -C /
 popd
 
 # Services
+lxc exec $CONTAINER_NAME -- rc-update add dbus
+lxc exec $CONTAINER_NAME -- rc-service dbus start
 lxc exec $CONTAINER_NAME -- rc-update add samba
 lxc exec $CONTAINER_NAME -- rc-service samba start
+lxc exec $CONTAINER_NAME -- rc-update add avahi-daemon
+lxc exec $CONTAINER_NAME -- rc-service avahi-daemon start
 lxc exec $CONTAINER_NAME -- rc-update add nfs
 lxc exec $CONTAINER_NAME -- rc-service nfs start
 
